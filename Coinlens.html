@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoinLens — AI-Assisted Coin Valuation & Grading Report</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#111827; --card:#161d2b; --card2:#1c2436;
+    --gold:#d4af37; --gold2:#f0d778; --ink:#e8e6df; --mut:#8b93a7;
+    --line:#26314a; --good:#3ddc97; --warn:#ffb454; --bad:#ff6b6b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:
+    radial-gradient(1200px 600px at 80% -10%, #1a2340 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 30%, #231a08 0%, transparent 55%), var(--bg);
+    color:var(--ink); min-height:100vh; line-height:1.55;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+  header{padding:26px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .coinlogo{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%, var(--gold2), var(--gold) 55%, #8a6d1c);
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#3a2c05;box-shadow:0 0 22px rgba(212,175,55,.35);font-size:20px}
+  .brand h1{font-size:1.35rem;letter-spacing:.5px}
+  .brand small{display:block;color:var(--mut);font-size:.72rem;letter-spacing:2px;text-transform:uppercase}
+  .badge{background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.35);color:var(--good);
+    padding:6px 12px;border-radius:999px;font-size:.75rem}
+  .hero{padding:56px 0 34px;text-align:center}
+  .hero h2{font-size:clamp(1.9rem,4.5vw,3rem);line-height:1.15}
+  .hero h2 span{background:linear-gradient(90deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--mut);max-width:640px;margin:16px auto 0;font-size:1.02rem}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:36px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .step b{color:var(--gold2)}
+  .step .n{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#3a2c05;
+    align-items:center;justify-content:center;font-weight:800;margin-bottom:10px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;margin:22px 0}
+  .panel h3{font-size:1.1rem;margin-bottom:6px}
+  .panel .sub{color:var(--mut);font-size:.85rem;margin-bottom:18px}
+  .uploads{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:640px){.uploads{grid-template-columns:1fr}}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:26px;text-align:center;cursor:pointer;
+    transition:.2s;background:var(--bg2);position:relative;overflow:hidden}
+  .drop:hover,.drop.over{border-color:var(--gold);background:#1a2133}
+  .drop img{max-width:100%;max-height:220px;border-radius:10px;display:block;margin:10px auto 0}
+  .drop .ic{font-size:2rem}
+  .drop input{display:none}
+  .drop .fname{color:var(--good);font-size:.8rem;margin-top:8px;word-break:break-all}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  label{display:block;font-size:.78rem;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+  select,input[type=text],input[type=number]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg2);color:var(--ink);font-size:.95rem}
+  select:focus,input:focus{outline:none;border-color:var(--gold)}
+  .slider-row{display:flex;align-items:center;gap:14px}
+  input[type=range]{flex:1;accent-color:var(--gold)}
+  .gradebox{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:12px}
+  .gradebox .g{font-size:1.6rem;font-weight:800;color:var(--gold2)}
+  .gradebox .d{color:var(--mut);font-size:.88rem}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);
+    font-size:.8rem;cursor:pointer;color:var(--mut)}
+  .chip.on{border-color:var(--gold);color:var(--gold2);background:rgba(212,175,55,.1)}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--gold2),var(--gold));
+    color:#3a2c05;border:none;padding:14px 28px;border-radius:12px;font-weight:800;font-size:1rem;
+    cursor:pointer;transition:.15s;box-shadow:0 6px 20px rgba(212,175,55,.25)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(212,175,55,.4)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--gold);color:var(--gold2)}
+  .center{text-align:center}
+  #results{display:none}
+  .valcard{background:linear-gradient(160deg,#1b2340,#141a29);border:1px solid rgba(212,175,55,.4);
+    border-radius:var(--radius);padding:30px;margin:22px 0;text-align:center}
+  .valcard .est{font-size:2.6rem;font-weight:800;color:var(--gold2)}
+  .valcard .rng{color:var(--mut);margin-top:4px}
+  .confbar{height:10px;background:var(--bg2);border-radius:99px;overflow:hidden;max-width:420px;margin:18px auto 6px}
+  .confbar i{display:block;height:100%;background:linear-gradient(90deg,var(--good),var(--gold));border-radius:99px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--gold2);font-size:.78rem;text-transform:uppercase;letter-spacing:1px}
+  .note{font-size:.82rem;color:var(--mut);border-left:3px solid var(--gold);padding:10px 14px;background:var(--bg2);border-radius:0 8px 8px 0;margin:14px 0}
+  .src{font-size:.8rem;color:var(--mut)}
+  .src a{color:#7ab3ff;text-decoration:none}
+  .tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.72rem;margin:2px;
+    background:rgba(122,179,255,.12);border:1px solid rgba(122,179,255,.3);color:#9cc4ff}
+  /* report */
+  #report{display:none;background:#fff;color:#111;padding:44px 48px;border-radius:6px;margin:26px 0;font-size:.92rem}
+  #report h1{color:#111;font-size:1.5rem;border-bottom:3px solid var(--gold);padding-bottom:8px;margin-bottom:4px}
+  #report .rmeta{color:#555;font-size:.8rem;margin-bottom:18px}
+  #report h2{color:#111;font-size:1.05rem;margin:20px 0 8px}
+  #report table{border-color:#ddd}
+  #report th{color:#111;background:#f4f4f4}
+  #report td,#report th{border-bottom:1px solid #ddd;color:#222}
+  #report .rval{font-size:1.9rem;font-weight:800;color:#8a6d1c}
+  #report .fine{color:#666;font-size:.75rem;margin-top:22px;border-top:1px solid #ddd;padding-top:10px}
+  #report img{max-width:180px;max-height:180px;border:1px solid #ddd;border-radius:6px;margin:4px}
+  @media print{
+    body{background:#fff}
+    body *{visibility:hidden}
+    #report,#report *{visibility:visible}
+    #report{display:block !important;position:absolute;left:0;top:0;width:100%;margin:0;border-radius:0}
+  }
+  footer{padding:36px 0 60px;color:var(--mut);font-size:.8rem;text-align:center}
+  .err{color:var(--bad);font-size:.82rem;margin-top:6px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="coinlogo">¢</div>
+      <div><h1>CoinLens</h1><small>Numismatic Valuation Engine</small></div>
+    </div>
+    <div class="badge">Estimate — not an official appraisal</div>
+  </header>
+
+  <section class="hero">
+    <h2>Photograph your coin.<br><span>Get a documented valuation.</span></h2>
+    <p>Upload front and back images, describe the coin, and receive a structured analysis using standard numismatic methods — Sheldon grading scale, mintage rarity, metal content, and market comparables — with a printable, exportable report.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><b>Upload images</b><br><span style="color:var(--mut);font-size:.85rem">Front (obverse) and back (reverse) photos of your coin.</span></div>
+      <div class="step"><div class="n">2</div><b>Describe & grade</b><br><span style="color:var(--mut);font-size:.85rem">Identify the coin and assess condition on the 70-point Sheldon scale.</span></div>
+      <div class="step"><div class="n">3</div><b>Get valuation</b><br><span style="color:var(--mut);font-size:.85rem">Value range, analysis narrative, and cited sources.</span></div>
+      <div class="step"><div class="n">4</div><b>Export report</b><br><span style="color:var(--mut);font-size:.85rem">Print or save a professional PDF report.</span></div>
+    </div>
+  </section>
+
+  <!-- STEP 1: IMAGES -->
+  <div class="panel">
+    <h3>1. Coin Images</h3>
+    <div class="sub">Clear, well-lit photos straight-on give the best results. Images are analyzed locally in your browser and never uploaded.</div>
+    <div class="uploads">
+      <div class="drop" id="dropF">
+        <input type="file" id="fileF" accept="image/*">
+        <div class="ic">🪙</div><b>Obverse (Front)</b><br>
+        <span style="color:var(--mut);font-size:.8rem">Click or drag an image here</span>
+        <img id="prevF" style="display:none">
+        <div class="fname" id="nameF"></div>
+      </div>
+      <div class="drop" id="dropB">
+        <input type="file" id="fileB" accept="image/*">
+        <div class="ic">🔄</div><b>Reverse (Back)</b><br>
+        <span style="color:var(--mut);font-size:.8rem">Click or drag an image here</span>
+        <img id="prevB" style="display:none">
+        <div class="fname" id="nameB"></div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:16px"><b>Visual analysis:</b> the engine measures sharpness, contrast, and visible detail from your photos to sanity-check your grade selection. Use a grade one or two points lower than your instinct — most self-graded coins are overgraded.</div>
+  </div>
+
+  <!-- STEP 2: IDENTIFICATION -->
+  <div class="panel">
+    <h3>2. Coin Identification</h3>
+    <div class="sub">Match what you see on the coin. The value engine draws on a curated price database of common U.S. series plus a metal-content floor for world coins.</div>
+    <div class="grid2">
+      <div><label>Country</label>
+        <select id="country">
+          <option value="us">United States</option>
+          <option value="ca">Canada</option>
+          <option value="uk">United Kingdom</option>
+          <option value="au">Australia</option>
+          <option value="mx">Mexico</option>
+          <option value="other">South Africa / China / Austria / Other</option>
+          <option value="world">Generic World Coin</option>
+        </select></div>
+      <div><label>Series / Type</label><select id="series"></select></div>
+      <div><label>Year</label><input type="number" id="year" min="0" max="2026" placeholder="e.g. 1909"></div>
+      <div><label>Mint Mark</label>
+        <select id="mint">
+          <option value="">None (Philadelphia)</option><option value="D">D — Denver</option>
+          <option value="S">S — San Francisco</option><option value="O">O — New Orleans</option>
+          <option value="CC">CC — Carson City</option><option value="W">W — West Point</option>
+          <option value="P">P — Philadelphia (modern)</option>
+        </select></div>
+      <div><label>Metal (for melt-value floor)</label>
+        <select id="metal">
+          <option value="cu">Copper / Bronze</option><option value="ni">Nickel / Cupro-nickel</option>
+          <option value="ag">Silver</option><option value="au">Gold</option><option value="zn">Zinc / Steel</option>
+        </select></div>
+      <div><label>Weight — grams (optional)</label><input type="number" id="weight" step="0.01" placeholder="e.g. 26.73"></div>
+    </div>
+  </div>
+
+  <!-- STEP 3: GRADE -->
+  <div class="panel">
+    <h3>3. Condition Assessment (Sheldon Scale)</h3>
+    <div class="sub">Estimate wear: look for full lines, full luster, contact marks. Reference points below follow standard grading descriptors.</div>
+    <div class="slider-row">
+      <input type="range" id="grade" min="1" max="70" value="55">
+      <div class="gradebox" style="margin-top:0;min-width:220px">
+        <div class="g" id="gradeLabel">AU-55</div>
+        <div class="d" id="gradeDesc"></div>
+      </div>
+    </div>
+    <div style="margin-top:18px">
+      <label>Additional factors</label>
+      <div class="chips" id="factors">
+        <div class="chip" data-v="toning">Attractive original toning</div>
+        <div class="chip" data-v="luster">Strong original luster</div>
+        <div class="chip" data-v="damage">Damage / cleaning / corrosion</div>
+        <div class="chip" data-v="keydate">Known key date / low mintage</div>
+        <div class="chip" data-v="error">Possible mint error</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="center" style="margin:26px 0">
+    <button class="btn" id="analyzeBtn">⚖️ Analyze & Value Coin</button>
+    <div class="err" id="errMsg">Please complete identification: year, and ideally both images.</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="valcard">
+      <div style="color:var(--mut);font-size:.8rem;letter-spacing:2px;text-transform:uppercase">Estimated Market Value</div>
+      <div class="est" id="estVal">$0.00</div>
+      <div class="rng" id="estRange"></div>
+      <div class="confbar"><i id="confFill" style="width:50%"></i></div>
+      <div style="color:var(--mut);font-size:.78rem">Confidence: <b id="confTxt" style="color:var(--gold2)"></b></div>
+    </div>
+
+    <div class="panel">
+      <h3>Valuation Breakdown</h3>
+      <table id="breakTable">
+        <tr><th>Component</th><th>Amount</th><th>Basis</th></tr>
+      </table>
+      <div class="note" id="analysisNote"></div>
+      <div id="srcList" class="src"></div>
+      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="printBtn">🖨️ Print / Save PDF Report</button>
+        <button class="btn ghost" id="dlBtn">⬇️ Export Report (.html)</button>
+        <button class="btn ghost" id="newBtn">↺ Value Another Coin</button>
+      </div>
+    </div>
+
+    <!-- PRINTABLE REPORT -->
+    <div id="report">
+      <h1>CoinLens Numismatic Valuation Report</h1>
+      <div class="rmeta">Report ID: <span id="rId"></span> &nbsp;|&nbsp; Generated: <span id="rDate"></span> &nbsp;|&nbsp; This is a computer-assisted estimate, not a certified appraisal.</div>
+      <div id="rImgs" style="margin-bottom:14px"></div>
+      <h2>Coin Identification</h2>
+      <table id="rIdTable"></table>
+      <h2>Condition Assessment</h2>
+      <div id="rGrade"></div>
+      <h2>Estimated Value</h2>
+      <div class="rval" id="rVal"></div>
+      <div id="rRange" style="color:#555"></div>
+      <h2>Analysis & Methodology</h2>
+      <div id="rAnalysis" style="white-space:pre-line"></div>
+      <h2>Cited Sources</h2>
+      <div id="rSources" style="font-size:.82rem"></div>
+      <div class="fine">Values are estimates derived from published price-guide methodology (Sheldon grading scale, Red Book-style tiered pricing, and metal-content floors). Actual market value depends on authentication, third-party grading (PCGS/NGC), eye appeal, and current auction results. Consult a licensed numismatist or submit to a grading service for high-value coins.</div>
+    </div>
+  </div>
+
+  <footer>
+    CoinLens uses the Sheldon 1–70 grading scale, published price-guide conventions, and precious-metal spot floors.
+    Data references: PCGS Price Guide, NGC Price Guide, A Guide Book of United States Coins ("Red Book"), Numista, USA Coin Book, Heritage Auctions archives.<br><br>
+    Not financial advice. Coin images never leave your device.
+  </footer>
+</div>
+
+<script>
+/* ---------- DATA: curated price tables (approximate retail guide values, USD) ---------- */
+const SERIES = {
+  "Lincoln Wheat Cent (1909-1958)":{metal:"cu",keydates:{"1909-S VDB":2500,"1909-S":120,"1914-D":250,"1922 No D":1000,"1931-S":120,"1955 DDO":1500},
+    grades:{G4:.25,VG8:.5,F12:1,VF20:1.5,XF40:2,AU50:2.5,MS60:5,MS63:10,MS65:35}},
+  "Lincoln Memorial Cent (1959-2008)":{metal:"cu",keydates:{"1969-S DDO":400,"1972 DDO":250,"1995 DDO":30},
+    grades:{G4:.01,VG8:.01,F12:.01,VF20:.01,XF40:.01,AU50:.02,MS60:.15,MS63:.5,MS65:5}},
+  "Indian Head Cent (1859-1909)":{metal:"cu",keydates:{"1877":700,"1909-S":450},
+    grades:{G4:3,VG8:5,F12:8,VF20:14,XF40:30,AU50:55,MS60:120,MS63:250,MS65:700}},
+  "Buffalo Nickel (1913-1938)":{metal:"ni",keydates:{"1918-7 DDO":1500,"1937-D 3-Legged":400,"1916 DDO":250},
+    grades:{G4:.8,VG8:1.2,F12:2.5,VF20:5,XF40:12,AU50:22,MS60:45,MS63:90,MS65:300}},
+  "Jefferson Nickel (1938-present)":{metal:"ni",keydates:{"1950-D":20,"1942-P TII":40,"1943-P TII":40,"1944-P TII":40},
+    grades:{G4:.05,VG8:.05,F12:.1,VF20:.2,XF40:.4,AU50:.7,MS60:1.5,MS63:4,MS65:15}},
+  "Mercury Dime (1916-1945)":{metal:"ag",keydates:{"1916-D":1200,"1921":60,"1921-D":90,"1942-41":400,"1945-S Micro S":30},
+    grades:{G4:2,VG8:2.5,F12:3.5,VF20:5,XF40:8,AU50:12,MS60:25,MS63:45,MS65:140}},
+  "Roosevelt Dime (1946-present)":{metal:"ag",keydates:{"1982 No P":150,"1996-W":15},silverThrough:1964,
+    grades:{G4:.5,VG8:.5,F12:.6,VF20:.7,XF40:.8,AU50:1,MS60:3,MS63:6,MS65:20}},
+  "Washington Quarter (1932-present)":{metal:"ag",keydates:{"1932-D":120,"1932-S":120,"1937-D DDO":200,"1950-D DDO S":100},silverThrough:1964,
+    grades:{G4:3.5,VG8:4,F12:5,VF20:6,XF40:8,AU50:10,MS60:20,MS63:40,MS65:150}},
+  "Standing Liberty Quarter (1916-1930)":{metal:"ag",keydates:{"1916":2500,"1918-7 S":1500,"1923-S":250},
+    grades:{G4:25,VG8:35,F12:55,VF20:85,XF40:150,AU50:250,MS60:500,MS63:1000,MS65:3500}},
+  "Walking Liberty Half (1916-1947)":{metal:"ag",keydates:{"1921":180,"1921-D":280,"1938-D":150,"1916":90},
+    grades:{G4:10,VG8:12,F12:15,VF20:20,XF40:30,AU50:45,MS60:90,MS63:200,MS65:800}},
+  "Franklin Half (1948-1963)":{metal:"ag",keydates:{"1955 Bugs Bunny":40,"1961 DDR":30},
+    grades:{G4:8,VG8:8.5,F12:9,VF20:10,XF40:12,AU50:14,MS60:18,MS63:30,MS65:90}},
+  "Kennedy Half (1964-present)":{metal:"ag",keydates:{"1970-D":25,"1998-S Matte":60},silverThrough:1970,
+    grades:{G4:6,VG8:6,F12:6.5,VF20:7,XF40:8,AU50:9,MS60:12,MS63:18,MS65:45}},
+  "Morgan Dollar (1878-1921)":{metal:"ag",keydates:{"1893-S":4000,"1895":35000,"1889-CC":1200,"1893-CC":500,"1901":250,"1892-S":250},
+    grades:{G4:28,VG8:32,F12:36,VF20:40,XF40:48,AU50:58,MS60:75,MS63:150,MS65:900}},
+  "Peace Dollar (1921-1935)":{metal:"ag",keydates:{"1921":180,"1928":450,"1934-S":120,"1927-D":90},
+    grades:{G4:25,VG8:28,F12:30,VF20:33,XF40:38,AU50:44,MS60:60,MS63:110,MS65:700}},
+  "Eisenhower Dollar (1971-1978)":{metal:"ni",keydates:{"1972 TII":80,"1976 TII 40%":12},
+    grades:{G4:1.1,VG8:1.1,F12:1.2,VF20:1.25,XF40:1.3,AU50:1.4,MS60:3,MS63:10,MS65:40}},
+  "American Silver Eagle (1986-present)":{metal:"ag",keydates:{"1996":60,"2019-S ERP":200},
+    grades:{G4:20,VG8:20,F12:21,VF20:22,XF40:24,AU50:26,MS60:30,MS63:38,MS65:55}},
+  /* ----- CANADA ----- */
+  "Canada Large Cent (1858-1920)":{metal:"cu",keydates:{"1858":30,"1890-H":45,"1907-H":25,"1909":30,"1916":25},
+    grades:{G4:1.2,VG8:2.5,F12:5,VF20:9,XF40:20,AU50:38,MS60:85,MS63:190,MS65:550}},
+  "Canada Small Cent (1920-present)":{metal:"cu",keydates:{"1922":40,"1923":35,"1924":30,"1925":60,"1936 Dot":250000,"1955 NSF":250,"2006 Logo":40},
+    grades:{G4:.05,VG8:.08,F12:.15,VF20:.3,XF40:.7,AU50:1.5,MS60:5,MS63:15,MS65:60}},
+  "Canada 5 Cents Silver (1858-1921)":{metal:"ag",keydates:{"1870":90,"1872-H":150,"1880":220,"1885":250,"1890-H":120,"1902-H":60},
+    grades:{G4:8,VG8:12,F12:18,VF20:28,XF40:50,AU50:85,MS60:160,MS63:320,MS65:900}},
+  "Canada Voyageur Silver Dollar (1935-1967)":{metal:"ag",keydates:{"1935":35,"1936 Dot":20000,"1947 Maple Leaf":40,"1948":1200,"1950 Arnprior":40,"1955 Arnprior SF":60,"1967":15},
+    grades:{G4:12,VG8:13,F12:14,VF20:15,XF40:17,AU50:20,MS60:28,MS63:50,MS65:180}},
+  "Canada Maple Leaf Silver (1988-present)":{metal:"ag",keydates:{"1997":45,"2000 Fireworks":40,"2006":35},
+    grades:{G4:20,VG8:20,F12:21,VF20:22,XF40:24,AU50:26,MS60:30,MS63:40,MS65:60}},
+  "Canada Gold Maple Leaf (1979-present)":{metal:"au",keydates:{"1979":2200,"1998 10oz":14000},
+    grades:{G4:1950,VG8:1960,F12:1975,VF20:1990,XF40:2010,AU50:2030,MS60:2060,MS63:2100,MS65:2250}},
+  /* ----- UNITED KINGDOM ----- */
+  "UK Penny (Victoria–Elizabeth II, 1860-1970)":{metal:"cu",keydates:{"1862":35,"1869":120,"1871":30,"1875-H":80,"1882-H":60,"1895":40,"1902 Low Tide":35,"1918-H":30,"1919-H":40,"1933":45000,"1954":120},
+    grades:{G4:.25,VG8:.5,F12:1,VF20:2.5,XF40:8,AU50:18,MS60:45,MS63:120,MS65:450}},
+  "UK Shilling (English reverse, 1551-1970)":{metal:"ag",keydates:{"1905":180,"1911":35,"1933":250,"1946":12},silverThrough:1946,
+    grades:{G4:2,VG8:2.5,F12:3.5,VF20:5,XF40:8,AU50:12,MS60:22,MS63:45,MS65:160}},
+  "UK Florin (Two Shillings, 1849-1967)":{metal:"ag",keydates:{"1849":120,"1852":250,"1887 Arabic 1":300,"1932":90,"1933":9000},silverThrough:1946,
+    grades:{G4:4,VG8:5.5,F12:8,VF20:12,XF40:20,AU50:32,MS60:55,MS63:110,MS65:350}},
+  "UK Half Crown (1839-1967)":{metal:"ag",keydates:{"1850":400,"1854":150,"1884":140,"1893":45,"1905":150,"1930":60,"1937":35},silverThrough:1946,
+    grades:{G4:6,VG8:8,F12:12,VF20:18,XF40:28,AU50:42,MS60:70,MS63:140,MS65:420}},
+  "UK Sovereign (Gold, 1817-present)":{metal:"au",keydates:{"1817":1800,"1820":2200,"1838":1800,"1841":2500,"1874 Shield":2200,"1917 London":4000,"1937 Proof":30000},
+    grades:{G4:460,VG8:465,F12:470,VF20:478,XF40:490,AU50:505,MS60:530,MS63:575,MS65:750}},
+  "UK Britannia Silver (1997-present)":{metal:"ag",keydates:{"1998":60,"2006":45},
+    grades:{G4:21,VG8:22,F12:23,VF20:24,XF40:26,AU50:28,MS60:33,MS63:44,MS65:70}},
+  /* ----- AUSTRALIA ----- */
+  "Australia Penny (1911-1964)":{metal:"cu",keydates:{"1914":20,"1915":35,"1918":15,"1919 Double Dot":250,"1920":25,"1925":80,"1930":1200,"1931":15,"1946":12,"1953":12},
+    grades:{G4:.3,VG8:.6,F12:1.2,VF20:3,XF40:9,AU50:20,MS60:50,MS63:140,MS65:600}},
+  "Australia Florin (1910-1963)":{metal:"ag",keydates:{"1914-H":400,"1915":500,"1932":250,"1934-35 Melbourne Centenary":35,"1937 Crown":120,"1938":50},
+    grades:{G4:5,VG8:7,F12:10,VF20:16,XF40:28,AU50:48,MS60:85,MS63:170,MS65:550}},
+  "Australia Shilling (1910-1963)":{metal:"ag",keydates:{"1915":250,"1921":120,"1922":90,"1924":140,"1933":300},
+    grades:{G4:3,VG8:4,F12:6,VF20:10,XF40:18,AU50:32,MS60:60,MS63:120,MS65:400}},
+  "Australia Silver Kangaroo (1993-present)":{metal:"ag",keydates:{"1993":80,"1995":45,"2004":40},
+    grades:{G4:22,VG8:23,F12:24,VF20:25,XF40:27,AU50:29,MS60:34,MS63:46,MS65:75}},
+  /* ----- MEXICO ----- */
+  "Mexico 8 Reales (Cap & Rays, 1823-1897)":{metal:"ag",keydates:{"1823 Mo JM":150,"1824 Do RM":200,"1844 Go RR":180,"1860 Mo CH":120,"1876 Mo M":100,"1890 Do CP":90},
+    grades:{G4:35,VG8:42,F12:50,VF20:65,XF40:95,AU50:140,MS60:230,MS63:450,MS65:1400}},
+  "Mexico Peso (Cap & Rays, 1898-1909)":{metal:"ag",keydates:{"1898":80,"1904":60,"1908":60},
+    grades:{G4:22,VG8:26,F12:30,VF20:36,XF40:48,AU50:65,MS60:95,MS63:180,MS65:550}},
+  "Mexico Centavo (1905-1970s)":{metal:"cu",keydates:{"1906":40,"1907":30,"1914":25,"1915":35},
+    grades:{G4:.3,VG8:.6,F12:1.2,VF20:3,XF40:8,AU50:18,MS60:45,MS63:120,MS65:450}},
+  "Mexico Libertad Silver (1982-present)":{metal:"ag",keydates:{"1982":40,"1999":60,"2006":35,"2014":40},
+    grades:{G4:26,VG8:27,F12:28,VF20:29,XF40:31,AU50:33,MS60:38,MS63:52,MS65:90}},
+  "Mexico 50 Pesos Gold Centenario":{metal:"au",keydates:{"1921":2900,"1922":2700,"1923":2650,"1943 Restrike":2500,"1947 Restrike":2450},
+    grades:{G4:2350,VG8:2380,F12:2410,VF20:2440,XF40:2470,AU50:2510,MS60:2570,MS63:2650,MS65:2900}},
+  /* ----- OTHER WORLD ----- */
+  "South Africa Krugerrand (Gold, 1967-present)":{metal:"au",keydates:{"1967":2500,"1968":2300,"1969":2200,"1992":2200,"2017 50th":2200},
+    grades:{G4:2050,VG8:2060,F12:2070,VF20:2080,XF40:2100,AU50:2120,MS60:2150,MS63:2190,MS65:2350}},
+  "China Panda Silver (1983-present)":{metal:"ag",keydates:{"1983":500,"1984":180,"1985":90,"1987":50,"1995":70,"2000":90},
+    grades:{G4:30,VG8:32,F12:34,VF20:36,XF40:40,AU50:45,MS60:55,MS63:80,MS65:160}},
+  "China Panda Gold (1982-present)":{metal:"au",keydates:{"1982":2200,"1983":2300,"2000":2100,"2015":1950},
+    grades:{G4:1850,VG8:1860,F12:1870,VF20:1885,XF40:1900,AU50:1920,MS60:1950,MS63:2000,MS65:2200}},
+  "Austria Philharmonic Silver (2008-present)":{metal:"ag",keydates:{"2008":45,"2009":40,"2010":38},
+    grades:{G4:21,VG8:22,F12:23,VF20:24,XF40:26,AU50:28,MS60:32,MS63:42,MS65:65}},
+  "Austria Philharmonic Gold (1989-present)":{metal:"au",keydates:{"1989":2050,"1990":2000},
+    grades:{G4:1900,VG8:1910,F12:1920,VF20:1930,XF40:1945,AU50:1960,MS60:1990,MS63:2040,MS65:2250}},
+  "World / Other Coin":{metal:"cu",keydates:{},grades:{G4:.1,VG8:.2,F12:.4,VF20:.8,XF40:1.5,AU50:3,MS60:8,MS63:15,MS65:40}}
+};
+const SPOT = {ag:38.0, au:2650.0}; // approximate spot per troy oz
+const MELT = { // per gram, typical coin fineness
+  ag: SPOT.ag/31.1035,        // ~$1.22/g fine silver
+  au: SPOT.au/31.1035         // ~$85/g fine gold
+};
+const MINTAGES = { // approximate, for rarity note
+  "1909-S VDB":"484,000","1914-D":"1,193,000","1931-S":"866,000","1916-D (Mercury Dime)":"264,000",
+  "1921 (Walking)":"246,000","1893-S":"100,000","1889-CC":"350,000","1928 Peace":"360,649",
+  "1936 Dot":"~5 known (Canada)","1933 Penny UK":"~6-7 known","1948 (Canada Voyageur)":"18,780",
+  "1930 (Australia Penny)":"~2,000","1947 Maple Leaf":"21,135","1955 NSF":"~few hundred known",
+  "1996 (Silver Eagle)":"3,603,386","1909-S":"1,825,000"
+};
+
+const gradeDesc = g => {
+  if(g<4) return "Basal state — coin identifiable, heavy wear, rim damage possible (P/FR/AG range).";
+  if(g<8)  return "Good (G) — heavy wear; major design elements visible but flat.";
+  if(g<20) return "Very Good (VG/F) — moderate wear; rim fairly complete, lettering clear.";
+  if(g<40) return "Very Fine (VF) — light-moderate wear; major features sharp, some flatness.";
+  if(g<50) return "Extremely Fine (EF/XF) — light wear on high points only; most detail sharp.";
+  if(g<58) return "About Uncirculated (AU) — trace wear on highest points; most luster intact.";
+  if(g<63) return "Mint State (MS/UNC 60-62) — no wear; bag marks, subdued luster.";
+  if(g<65) return "Choice Mint State (MS-63/64) — few marks; good luster and strike.";
+  if(g<67) return "Gem Mint State (MS-65/66) — minimal marks; strong luster and eye appeal.";
+  return "Superb Gem (MS-67+) — near-perfect; exceptional strike, luster, and surfaces.";
+};
+const gKey = g => { // bucket to price tier
+  if(g<4)return "G4"; if(g<8)return "G4"; if(g<12)return "VG8"; if(g<20)return "F12";
+  if(g<40)return "VF20"; if(g<50)return "XF40"; if(g<58)return "AU50";
+  if(g<63)return "MS60"; if(g<65)return "MS63"; return "MS65";
+};
+const gName = g => { const k=gKey(g); return {G4:"G-4",VG8:"VG-8",F12:"F-12",VF20:"VF-20",XF40:"EF-40",AU50:"AU-50",MS60:"MS-60",MS63:"MS-63",MS65:"MS-65"}[k]; };
+
+/* ---------- series dropdown ---------- */
+const seriesSel = document.getElementById("series");
+const SERIES_REGION = {
+  us:["Lincoln Wheat Cent (1909-1958)","Lincoln Memorial Cent (1959-2008)","Indian Head Cent (1859-1909)",
+      "Buffalo Nickel (1913-1938)","Jefferson Nickel (1938-present)","Mercury Dime (1916-1945)",
+      "Roosevelt Dime (1946-present)","Washington Quarter (1932-present)","Standing Liberty Quarter (1916-1930)",
+      "Walking Liberty Half (1916-1947)","Franklin Half (1948-1963)","Kennedy Half (1964-present)",
+      "Morgan Dollar (1878-1921)","Peace Dollar (1921-1935)","Eisenhower Dollar (1971-1978)","American Silver Eagle (1986-present)"],
+  ca:["Canada Large Cent (1858-1920)","Canada Small Cent (1920-present)","Canada 5 Cents Silver (1858-1921)",
+      "Canada Voyageur Silver Dollar (1935-1967)","Canada Maple Leaf Silver (1988-present)","Canada Gold Maple Leaf (1979-present)"],
+  uk:["UK Penny (Victoria–Elizabeth II, 1860-1970)","UK Shilling (English reverse, 1551-1970)",
+      "UK Florin (Two Shillings, 1849-1967)","UK Half Crown (1839-1967)","UK Sovereign (Gold, 1817-present)",
+      "UK Britannia Silver (1997-present)"],
+  au:["Australia Penny (1911-1964)","Australia Florin (1910-1963)","Australia Shilling (1910-1963)",
+      "Australia Silver Kangaroo (1993-present)"],
+  mx:["Mexico 8 Reales (Cap & Rays, 1823-1897)","Mexico Peso (Cap & Rays, 1898-1909)",
+      "Mexico Centavo (1905-1970s)","Mexico Libertad Silver (1982-present)","Mexico 50 Pesos Gold Centenario"],
+  other:["South Africa Krugerrand (Gold, 1967-present)","China Panda Silver (1983-present)",
+      "China Panda Gold (1982-present)","Austria Philharmonic Silver (2008-present)","Austria Philharmonic Gold (1989-present)"],
+  world:["World / Other Coin"]
+};
+function fillSeries(region){
+  seriesSel.innerHTML="";
+  SERIES_REGION[region].forEach(s=>{const o=document.createElement("option");o.value=s;o.textContent=s;seriesSel.appendChild(o);});
+  document.getElementById("metal").value = SERIES[seriesSel.value].metal;
+}
+fillSeries("us");
+document.getElementById("country").onchange = e => fillSeries(e.target.value);
+seriesSel.onchange = ()=> document.getElementById("metal").value = SERIES[seriesSel.value].metal;
+
+/* ---------- image upload ---------- */
+let imgF=null, imgB=null;
+function bindDrop(dropId,fileId,prevId,nameId,which){
+  const drop=document.getElementById(dropId), file=document.getElementById(fileId);
+  drop.onclick=()=>file.click();
+  ["dragover","dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.toggle("over",ev==="dragover");if(ev==="drop"&&e.dataTransfer.files[0])load(e.dataTransfer.files[0]);}));
+  file.onchange=()=>file.files[0]&&load(file.files[0]);
+  function load(f){
+    const r=new FileReader();
+    r.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        document.getElementById(prevId).src=img.src;
+        document.getElementById(prevId).style.display="block";
+        document.getElementById(nameId).textContent=f.name+" ("+img.width+"×"+img.height+")";
+        if(which==="F")imgF=img;else imgB=img;
+      };
+      img.src=e.target.result;
+    };
+    r.readAsDataURL(f);
+  }
+}
+bindDrop("dropF","fileF","prevF","nameF","F");
+bindDrop("dropB","fileB","prevB","nameB","B");
+
+/* ---------- grade slider ---------- */
+const grade=document.getElementById("grade");
+function updGrade(){
+  const g=+grade.value;
+  document.getElementById("gradeLabel").textContent = g>=60 ? "MS-"+g : gName(g);
+  document.getElementById("gradeDesc").textContent = gradeDesc(g);
+}
+grade.oninput=updGrade; updGrade();
+
+/* factors */
+document.querySelectorAll("#factors .chip").forEach(c=>c.onclick=()=>c.classList.toggle("on"));
+
+/* ---------- image quality heuristic ---------- */
+function imageScore(img){
+  // downscale and measure laplacian-ish variance via canvas
+  const c=document.createElement("canvas");const s=64;c.width=s;c.height=s;
+  const x=c.getContext("2d");x.drawImage(img,0,0,s,s);
+  const d=x.getImageData(0,0,s,s).data;const g=new Float32Array(s*s);
+  for(let i=0;i<s*s;i++)g[i]=.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2];
+  let mean=0,n=s*s;for(let i=0;i<n;i++)mean+=g[i];mean/=n;
+  let v=0;for(let i=0;i<n;i++)v+=(g[i]-mean)**2;v/=n;
+  // local contrast
+  let lc=0,cnt=0;
+  for(let y=1;y<s-1;y++)for(let x2=1;x2<s-1;x2++){
+    const i=y*s+x2;lc+=Math.abs(4*g[i]-g[i-1]-g[i+1]-g[i-s]-g[i+s]);cnt++;}
+  lc/=cnt;
+  return Math.min(100, Math.round((Math.log(1+v)/Math.log(6000))*55 + Math.min(lc,55)));
+}
+
+/* ---------- valuation engine ---------- */
+function valueCoin(){
+  const err=document.getElementById("errMsg");
+  const series=seriesSel.value, year=+document.getElementById("year").value,
+        mint=document.getElementById("mint").value, metal=document.getElementById("metal").value,
+        weight=parseFloat(document.getElementById("weight").value)||0, g=+grade.value;
+  if(!year||year<0||year>2026){err.style.display="block";return null;}
+  err.style.display="none";
+  const data=SERIES[series];
+  const on=[...document.querySelectorAll("#factors .chip.on")].map(c=>c.dataset.v);
+  const rows=[]; let base=null, note="", sources=[];
+  const kdKey = year+"-"+mint, kdPlain = ""+year;
+  const isKey = data.keydates[kdKey]!==undefined || data.keydates[kdPlain]!==undefined;
+
+  // base guide value
+  if(isKey || on.includes("keydate")){
+    const kv = data.keydates[kdKey] ?? data.keydates[kdPlain] ?? null;
+    if(kv!==null){ base = kv * (g>=60?1.6 : g>=40?1.15 : g>=20?0.7 : 0.45); rows.push(["Key-date premium","$"+fmt(base),"Listed key date: "+(kdKey in data.keydates?kdKey:kdPlain)+" — published key-date guide value adjusted for grade "+gName(g)]); }
+    else { base = data.grades[gKey(g)]*8; rows.push(["Rarity adjustment","$"+fmt(base),"Claimed key date/low mintage: 8× guide multiplier pending verification"]); }
+  } else {
+    base = data.grades[gKey(g)];
+    // silver-era adjustment
+    if(metal==="ag" && data.silverThrough && year>data.silverThrough){
+      base=Math.max(base, 1.5); rows.push(["Clad-era guide value","$"+fmt(base),"Post-"+data.silverThrough+" issue is clad; numismatic value only"]);
+    } else if(metal==="ag"){
+      rows.push(["Guide value (circulated/UNC tier "+gName(g)+")","$"+fmt(base),"Series price table, grade tier "+gName(g)]);
+    } else {
+      rows.push(["Guide value (grade tier "+gName(g)+")","$"+fmt(base),"Series price table, grade tier "+gName(g)]);
+    }
+  }
+
+  // melt floor
+  let melt=0;
+  if(metal==="ag"&&weight>0){melt=weight*MELT.ag*0.9;rows.push(["Silver melt floor","$"+fmt(melt),weight+" g × ~90% coin silver × $"+SPOT.ag.toFixed(0)+"/oz spot"]);}
+  if(metal==="au"&&weight>0){melt=weight*MELT.au*0.9;rows.push(["Gold melt floor","$"+fmt(melt),weight+" g × ~90% fine gold × $"+SPOT.au.toFixed(0)+"/oz spot"]);}
+  let val=Math.max(base,melt);
+
+  // modifiers
+  let mult=1, mods=[];
+  if(on.includes("toning")&&g>=50){mult+=0.10;mods.push("attractive toning +10% (eye-appeal premium)");}
+  if(on.includes("luster")&&g>=55){mult+=0.10;mods.push("strong luster +10%");}
+  if(on.includes("damage")){mult-=0.45;mods.push("damage/cleaning −45% (net-grade deduction, per market convention)");}
+  if(on.includes("error")){mult+=0.30;mods.push("possible mint error +30% (must be authenticated — many 'errors' are post-mint damage)");}
+  val*=mult;
+  if(mods.length)rows.push(["Condition modifiers","×"+mult.toFixed(2),mods.join("; ")]);
+
+  const low=val*0.82, high=val*1.28;
+
+  // image quality confidence
+  let conf=52;
+  if(imgF&&imgB){conf=Math.round((imageScore(imgF)+imageScore(imgB))/2);conf=Math.min(92,Math.max(40,conf+25));}
+  else if(imgF||imgB){conf=58;}
+  if(metal==="ag"&&weight===0)conf-=10;
+  if(on.includes("error"))conf-=8;
+
+  // narrative
+  note = buildNarrative(series,year,mint,g,base,melt,val,mult,isKey,on,conf);
+
+  sources = [
+    ["PCGS Price Guide","https://www.pcgs.com/prices"],
+    ["NGC Coin Price Guide","https://www.ngccoin.com/price-guide/"],
+    ["A Guide Book of United States Coins (Red Book), 79th ed. 2026","https://www.whitman.com/store/Inventory/Detail/079484799X"],
+    ["Numista — coin catalog & reference","https://en.numista.com/"],
+    ["USA Coin Book","https://www.usacoinbook.com/"],
+    ["Heritage Auctions — realized prices archive","https://coins.ha.com/"],
+    ["Sheldon scale (1–70 grading) overview","https://en.wikipedia.org/wiki/Sheldon_coin_grading_scale"]
+  ];
+
+  return {series,year,mint:mint||"None",metal,weight,g,val,low,high,conf,rows,note,sources,
+          factors:on,imgF:imgF?imgF.src:null,imgB:imgB?imgB.src:null};
+}
+
+function fmt(n){return n>=1000?n.toLocaleString("en-US",{maximumFractionDigits:0}):n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function buildNarrative(series,year,mint,g,base,melt,val,mult,isKey,on,conf){
+  const lines=[];
+  lines.push("IDENTIFICATION — "+series+", dated "+year+(mint&&mint!=="None"?" with mint mark "+mint:" (no mint mark)"));
+  lines.push("GRADING — Assessed at "+(g>=60?"MS-"+g:gName(g))+" on the Sheldon 1–70 scale: "+gradeDesc(g));
+  if(isKey)lines.push("RARITY — This date/mint combination is a recognized key date with low mintage; scarcity drives value independent of metal content.");
+  if(melt>0)lines.push("METAL FLOOR — Precious-metal melt value of $"+fmt(melt)+" establishes a hard price floor; bullion demand supports the coin even in lower grades.");
+  lines.push("MARKET POSITIONING — Baseline guide value $"+fmt(base)+" adjusted by condition factors (net multiplier ×"+mult.toFixed(2)+"). Retail realization typically lands within −18% / +28% of guide depending on venue (dealer vs. auction).");
+  if(on.includes("damage"))lines.push("CAVEAT — Cleaning or damage triggers a net-grade deduction; certified damaged coins often trade at 40–60% of problem-free guide values.");
+  if(on.includes("error"))lines.push("CAVEAT — Unverified mint errors are frequently post-mint damage. Authentication by PCGS/NGC/ANACS is required before the error premium is bankable.");
+  lines.push("CONFIDENCE — "+conf+"%. "+(conf>=75?"Good photographic evidence supports the assessment.":conf>=55?"Moderate confidence; professional grading recommended for coins with estimated value over $100.":"Low confidence — attribution of date, mint mark, and grade is unverified. Third-party certification strongly advised before sale."));
+  return lines.join("\n\n");
+}
+
+/* ---------- render ---------- */
+document.getElementById("analyzeBtn").onclick=()=>{
+  const r=valueCoin(); if(!r)return;
+  document.getElementById("results").style.display="block";
+  document.getElementById("estVal").textContent="$"+fmt(r.val);
+  document.getElementById("estRange").textContent="Realistic range: $"+fmt(r.low)+" — $"+fmt(r.high);
+  document.getElementById("confFill").style.width=r.conf+"%";
+  document.getElementById("confTxt").textContent=r.conf+"%";
+  const bt=document.getElementById("breakTable");
+  bt.innerHTML="<tr><th>Component</th><th>Amount</th><th>Basis</th></tr>";
+  r.rows.forEach(row=>{const tr=document.createElement("tr");tr.innerHTML="<td>"+row[0]+"</td><td><b style='color:var(--gold2)'>"+row[1]+"</b></td><td style='color:var(--mut);font-size:.82rem'>"+row[2]+"</td>";bt.appendChild(tr);});
+  const tr=document.createElement("tr");tr.innerHTML="<td><b>Final estimate</b></td><td><b style='color:var(--good)'>$"+fmt(r.val)+"</b></td><td style='color:var(--mut);font-size:.82rem'>Range $"+fmt(r.low)+"–$"+fmt(r.high)+"</td>";bt.appendChild(tr);
+  document.getElementById("analysisNote").textContent=r.note.replace(/\n\n/g," ");
+  document.getElementById("srcList").innerHTML="<b style='color:var(--gold2)'>Sources:</b> "+r.sources.map(s=>"<span class='tag'><a href='"+s[1]+"' target='_blank' style='color:#9cc4ff;text-decoration:none'>"+s[0]+"</a></span>").join(" ");
+  buildReport(r);
+  document.getElementById("results").scrollIntoView({behavior:"smooth"});
+};
+
+function buildReport(r){
+  document.getElementById("rId").textContent="CL-"+Date.now().toString(36).toUpperCase();
+  document.getElementById("rDate").textContent=new Date().toLocaleString();
+  document.getElementById("rImgs").innerHTML=(r.imgF?"<img src='"+r.imgF+"'>":"")+(r.imgB?"<img src='"+r.imgB+"'>":"");
+  const idRows=[["Series / Type",r.series],["Year",r.year],["Mint Mark",r.mint],["Metal",r.metal],
+    ["Weight",r.weight?r.weight+" g":"—"],["Factors",r.factors.length?r.factors.join(", "):"None reported"]];
+  document.getElementById("rIdTable").innerHTML=idRows.map(x=>"<tr><th style='width:180px'>"+x[0]+"</th><td>"+x[1]+"</td></tr>").join("");
+  document.getElementById("rGrade").innerHTML="<b>"+(r.g>=60?"MS-"+r.g:gName(r.g))+"</b> — "+gradeDesc(r.g);
+  document.getElementById("rVal").textContent="$"+fmt(r.val);
+  document.getElementById("rRange").textContent="Realistic realization range: $"+fmt(r.low)+" — $"+fmt(r.high)+" (confidence "+r.conf+"%)";
+  document.getElementById("rAnalysis").textContent=r.note;
+  document.getElementById("rSources").innerHTML="<ol style='padding-left:18px'>"+r.sources.map(s=>"<li>"+s[0]+" — "+s[1]+"</li>").join("")+"</ol>";
+}
+
+document.getElementById("printBtn").onclick=()=>{
+  const rp=document.getElementById("report");rp.style.display="block";
+  window.print();
+  setTimeout(()=>rp.style.display="none",400);
+};
+document.getElementById("dlBtn").onclick=()=>{
+  const rp=document.getElementById("report");rp.style.display="block";
+  const doc="<!DOCTYPE html><html><head><meta charset='utf-8'><title>CoinLens Valuation Report</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;color:#111}h1{font-size:1.5rem;border-bottom:3px solid #d4af37;padding-bottom:8px}h2{font-size:1.05rem;margin:20px 0 8px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:.9rem}th{background:#f4f4f4}.rval{font-size:1.9rem;font-weight:800;color:#8a6d1c}img{max-width:180px;border:1px solid #ddd;border-radius:6px;margin:4px}.fine{color:#666;font-size:.75rem;margin-top:22px;border-top:1px solid #ddd;padding-top:10px}</style></head><body>"+rp.innerHTML+"</body></html>";
+  rp.style.display="none";
+  const b=new Blob([doc],{type:"text/html"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download="coinlens-valuation-report.html";a.click();
+};
+document.getElementById("newBtn").onclick=()=>{
+  document.getElementById("results").style.display="none";
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+</script>
+</body>
+</html>
